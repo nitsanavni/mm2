@@ -1,0 +1,26 @@
+{
+  "type": "module",
+  "name": "mm2",
+  "version": "1.0.0",
+  "description": "",
+  "main": "src/index.js",
+  "scripts": {
+    "test": "cd test && npx ava"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nitsanavni/mm2.git"
+  },
+  "keywords": [],
+  "author": "Nitsan Avni",
+  "bugs": {
+    "url": "https://github.com/nitsanavni/mm2/issues"
+  },
+  "homepage": "https://github.com/nitsanavni/mm2#readme",
+  "devDependencies": {
+    "typescript": "^4.6.3"
+  },
+  "dependencies": {
+    "log-update": "^5.0.1"
+  }
+}
