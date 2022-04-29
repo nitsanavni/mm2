@@ -1,15 +1,9 @@
-import os from "os";
 import logUpdate from "log-update";
 import _ from "lodash";
 
-import { intent } from "./intent.mjs";
+import { open as openStdin, onChar as onStdinChar } from "./raw-stdin.mjs";
 
-process.openStdin();
-if (process.stdin.isTTY) {
-  process.stdin.setRawMode(true);
-}
-process.stdin.resume();
-process.stdin.setEncoding("utf8");
+openStdin();
 
 const append = (() => {
   let acc = "";
@@ -20,7 +14,7 @@ const append = (() => {
   };
 })();
 
-process.stdin.on("data", (text: string) => {
+onStdinChar((text: string) => {
   if (text === "\u0003" || text === "q") {
     process.exit();
   }
