@@ -1,6 +1,37 @@
-import { $, sleep } from "zx";
+import { $, sleep, os } from "zx";
 import test from "ava";
 import { promisify } from "util";
+
+test("use stdin.on", async (t) => {
+  const { stdout, stdin, exitCode } = $`node ../src/cli.mjs`;
+
+  // TODO extract lastData(stdout)
+  const read = () => {
+    // TODO - generic type
+    let resolve: (value: string) => void;
+    let _promise: Promise<string>;
+
+    // TODO - cb as param
+    // TODO - call next immediately after resolving
+    stdout.on("data", (data) => resolve(String(data).trim()));
+
+    const next = (): Promise<string> =>
+      (_promise = new Promise((_resolve) => (resolve = _resolve)));
+
+    const promise = () => _promise;
+
+    return { promise, next };
+  };
+
+  const { promise, next } = read();
+
+  t.regex(await next(), /∙/);
+  t.regex(await promise(), /∙/);
+
+  next();
+  stdin.write("f");
+  t.regex(await promise(), /f,f/s);
+});
 
 test("cli", async (t) => {
   const { stdout, stdin, exitCode } = $`node ../src/cli.mjs`;
