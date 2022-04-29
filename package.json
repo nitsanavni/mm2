@@ -2,10 +2,11 @@
   "type": "module",
   "name": "mm2",
   "version": "1.0.0",
-  "description": "",
+  "description": "cli mind-mapping application",
   "main": "src/index.js",
   "scripts": {
-    "test": "cd test && npx ava"
+    "test": "cd test && npx ava",
+    "watch": "cat <(ack -g mjs -- src/) <(ack -g \\.test -- test/) | entr npm test"
   },
   "repository": {
     "type": "git",

@@ -1,0 +1,2 @@
+- document (eventually) persisted in markdown file, but represented as some model in memory? maybe a worker thread can take care of the sync
+- state persisted in memory?

@@ -1,7 +1,8 @@
-// import os
 import os from "os";
 import logUpdate from "log-update";
 import _ from "lodash";
+
+import { intent } from "./intent.mjs";
 
 process.openStdin();
 if (process.stdin.isTTY) {
@@ -9,17 +10,22 @@ if (process.stdin.isTTY) {
 }
 process.stdin.resume();
 process.stdin.setEncoding("utf8");
+
+const append = (() => {
+  let acc = "";
+
+  return (text: string) => {
+    acc += text;
+    return acc;
+  };
+})();
+
 process.stdin.on("data", (text: string) => {
   if (text === "\u0003" || text === "q") {
     process.exit();
   }
 
-  logUpdate(
-    _.join(
-      _.times(2, () => _.join(_.times(2, () => text))),
-      os.EOL
-    )
-  );
+  logUpdate(append(text));
 });
 
-logUpdate("∙");
+logUpdate("");

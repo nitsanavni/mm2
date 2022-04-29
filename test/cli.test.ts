@@ -1,4 +1,4 @@
-import { $, sleep, os } from "zx";
+import { $, sleep } from "zx";
 import test from "ava";
 import { promisify } from "util";
 import { Readable } from "stream";
@@ -10,7 +10,7 @@ const lastData = (readable: Readable) =>
     let latest: string;
 
     readable.on("data", (data) => {
-      latest = data.toString();
+      latest = data.toString().trim();
       resolve(latest);
       next();
     });
@@ -20,50 +20,25 @@ const lastData = (readable: Readable) =>
 
     next();
 
-    return () => Promise.race([latestPromise, sleep(200).then(() => latest)]);
+    return (opts?: { timeout?: number }) => {
+      const { timeout } = { timeout: 200, ...opts };
+
+      return Promise.race([latestPromise, sleep(timeout).then(() => latest)]);
+    };
   })();
 
-test("use stdin.on", async (t) => {
+test("starts with input mode", async (t) => {
   const { stdout, stdin, exitCode } = $`node ../src/cli.mjs`;
 
   const data = lastData(stdout);
 
-  t.regex(await data(), /∙/);
+  t.deepEqual(await data({ timeout: 1000 }), "");
 
-  stdin.write("f");
+  stdin.write("hello");
 
-  t.regex(await data(), /f,f/s);
+  t.regex(await data(), /hello$/s);
 
-  stdin.write("h");
+  stdin.write(" world!");
 
-  t.regex(await data(), /h,h/s);
-  t.regex(await data(), /h,h/s);
-});
-
-test("cli", async (t) => {
-  const { stdout, stdin, exitCode } = $`node ../src/cli.mjs`;
-
-  const getOut = promisify((cb) =>
-    stdout.once("data", (data) => cb(null, String(data).trim()))
-  ) as () => Promise<string>;
-
-  const d = await getOut();
-
-  t.deepEqual(d, "∙");
-
-  stdin.write("a");
-  t.regex(await getOut(), /a,a\na,a$/s);
-
-  stdin.write("b");
-  t.regex(await getOut(), /b,b\nb,b$/s);
-
-  stdin.write("q");
-
-  t.is(await exitCode, 0);
-});
-
-test("sanity", async (t) => {
-  const { stdout } = await $`ls`;
-
-  t.regex(stdout, /cli\.test\.ts/s);
+  t.regex(await data(), /hello world!$/s);
 });
