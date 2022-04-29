@@ -7,9 +7,11 @@ const lastData = (readable: Readable) =>
   (() => {
     let resolve: (value: string) => void;
     let latestPromise: Promise<string>;
+    let latest: string;
 
     readable.on("data", (data) => {
-      resolve(String(data).trim());
+      latest = data.toString();
+      resolve(latest);
       next();
     });
 
@@ -18,7 +20,7 @@ const lastData = (readable: Readable) =>
 
     next();
 
-    return () => latestPromise;
+    return () => Promise.race([latestPromise, sleep(200).then(() => latest)]);
   })();
 
 test("use stdin.on", async (t) => {
@@ -34,6 +36,7 @@ test("use stdin.on", async (t) => {
 
   stdin.write("h");
 
+  t.regex(await data(), /h,h/s);
   t.regex(await data(), /h,h/s);
 });
 
