@@ -2,18 +2,20 @@ import logUpdate from "log-update";
 import _ from "lodash";
 
 import { open as openStdin, onChar as onStdinChar } from "./raw-stdin.mjs";
-import appender from "./appender.mjs";
+import input from "./input.mjs";
 
 openStdin();
 
-const { append } = appender();
+const { append: appendToInput, value: renderInput } = input();
 
 onStdinChar((text: string) => {
-  if (text === "\u0003" || text === "q") {
+  if (text === "\u0003") {
     process.exit();
   }
 
-  logUpdate(append(text));
+  appendToInput(text);
+
+  logUpdate(renderInput());
 });
 
 logUpdate("");
