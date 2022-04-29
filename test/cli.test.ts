@@ -1,36 +1,40 @@
 import { $, sleep, os } from "zx";
 import test from "ava";
 import { promisify } from "util";
+import { Readable } from "stream";
+
+const lastData = (readable: Readable) =>
+  (() => {
+    let resolve: (value: string) => void;
+    let latestPromise: Promise<string>;
+
+    readable.on("data", (data) => {
+      resolve(String(data).trim());
+      next();
+    });
+
+    const next = (): Promise<string> =>
+      (latestPromise = new Promise((_resolve) => (resolve = _resolve)));
+
+    next();
+
+    return () => latestPromise;
+  })();
 
 test("use stdin.on", async (t) => {
   const { stdout, stdin, exitCode } = $`node ../src/cli.mjs`;
 
-  // TODO extract lastData(stdout)
-  const read = () => {
-    // TODO - generic type
-    let resolve: (value: string) => void;
-    let _promise: Promise<string>;
+  const data = lastData(stdout);
 
-    // TODO - cb as param
-    // TODO - call next immediately after resolving
-    stdout.on("data", (data) => resolve(String(data).trim()));
+  t.regex(await data(), /∙/);
 
-    const next = (): Promise<string> =>
-      (_promise = new Promise((_resolve) => (resolve = _resolve)));
-
-    const promise = () => _promise;
-
-    return { promise, next };
-  };
-
-  const { promise, next } = read();
-
-  t.regex(await next(), /∙/);
-  t.regex(await promise(), /∙/);
-
-  next();
   stdin.write("f");
-  t.regex(await promise(), /f,f/s);
+
+  t.regex(await data(), /f,f/s);
+
+  stdin.write("h");
+
+  t.regex(await data(), /h,h/s);
 });
 
 test("cli", async (t) => {
